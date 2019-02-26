@@ -233,6 +233,7 @@ int scanhash_pluck(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *
 int scanhash_quark(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done);
 void init_quarkhash_contexts();
 int scanhash_qubit(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done);
+int scanhash_rf256_cn(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done);
 int scanhash_rf256(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done);
 int scanhash_sha256d(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done);
 unsigned char *scrypt_buffer_alloc(int N);
@@ -510,6 +511,7 @@ void bmwhash(void *output, const void *input);
 void c11hash(void *output, const void *input);
 void cryptolight_hash(void* output, const void* input);
 void cryptonight_hash(void* output, const void* input);
+void rainforest_hash(void* output, const void* input);
 void cryptonight_hash_v1(void* output, const void* input);
 void decred_hash(void *output, const void *input);
 void droplp_hash(void *output, const void *input);

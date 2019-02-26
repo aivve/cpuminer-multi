@@ -1144,6 +1144,8 @@ static bool submit_upstream_work(CURL *curl, struct work *work)
 				break;
 			case ALGO_CRYPTONIGHT:
 				cryptonight_hash(hash, work->data);
+			case ALGO_RAINFOREST:
+				rainforest_hash(hash, work->data);
 			default:
 				break;
 			}
@@ -1278,6 +1280,8 @@ static bool submit_upstream_work(CURL *curl, struct work *work)
 				break;
 			case ALGO_CRYPTONIGHT:
 				cryptonight_hash(hash, work->data);
+			case ALGO_RAINFOREST:
+				rainforest_hash(hash, work->data);
 			default:
 				break;
 			}
@@ -2177,6 +2181,7 @@ static void *miner_thread(void *userdata)
 			case ALGO_AXIOM:
 			case ALGO_CRYPTOLIGHT:
 			case ALGO_CRYPTONIGHT:
+			//case ALGO_RAINFOREST:
 			case ALGO_SCRYPTJANE:
 				max64 = 0x40LL;
 				break;
@@ -2355,7 +2360,8 @@ static void *miner_thread(void *userdata)
 			rc = scanhash_qubit(thr_id, &work, max_nonce, &hashes_done);
 			break;
 		case ALGO_RAINFOREST:
-			rc = scanhash_rf256(thr_id, &work, max_nonce, &hashes_done);
+			rc = scanhash_rf256_cn(thr_id, &work, max_nonce, &hashes_done);
+			//rc = scanhash_rf256(thr_id, &work, max_nonce, &hashes_done);
 			break;
 		case ALGO_SCRYPT:
 			rc = scanhash_scrypt(thr_id, &work, max_nonce, &hashes_done, scratchbuf, opt_scrypt_n);
@@ -3471,6 +3477,12 @@ int main(int argc, char *argv[]) {
 		if (!opt_quiet) {
 			applog(LOG_INFO, "Using JSON-RPC 2.0");
 			applog(LOG_INFO, "CPU Supports AES-NI: %s", aes_ni_supported ? "YES" : "NO");
+		}
+	} else if (opt_algo == ALGO_RAINFOREST) {
+		jsonrpc_2 = true;
+		opt_extranonce = false;
+		if (!opt_quiet) {
+			applog(LOG_INFO, "Using JSON-RPC 2.0");
 		}
 	} else if(opt_algo == ALGO_DECRED || opt_algo == ALGO_SIA) {
 		have_gbt = false;

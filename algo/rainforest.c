@@ -812,6 +812,10 @@ void rf256_hash(void *out, const void *in, size_t len) {
   rf256_final(out, &ctx);
 }
 
+void rainforest_hash(char* output, const char* input) {
+  rf256_hash(output, input, 76);
+}
+
 int scanhash_rf256(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done)
 {
 	uint32_t _ALIGN(64) hash[8];
@@ -860,5 +864,29 @@ int scanhash_rf256(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *
 
 	pdata[19] = nonce;
 	*hashes_done = pdata[19] - first_nonce + 1;
+	return 0;
+}
+
+int scanhash_rf256_cn(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done)
+{
+	uint32_t _ALIGN(128) hash[8];
+	uint32_t *pdata = work->data;
+	uint32_t *ptarget = work->target;
+
+	uint32_t *nonceptr = (uint32_t*)(((char*)pdata) + 39);
+	uint32_t n = *nonceptr - 1;
+	const uint32_t first_nonce = n + 1;
+
+	do {
+		*nonceptr = ++n;
+		rf256_hash(hash, pdata, 76);
+		if (unlikely(hash[7] < ptarget[7])) {
+			work_set_target_ratio(work, hash);
+			*hashes_done = n - first_nonce + 1;
+			return 1;
+		}
+	} while (likely((n <= max_nonce && !work_restart[thr_id].restart)));
+
+	*hashes_done = n - first_nonce + 1;
 	return 0;
 }
