@@ -213,16 +213,16 @@ static void aes2r_encrypt(uint8_t * state, uint8_t * key) {
 
 #else
     /* first round of the algorithm */
-    add_round_key(state, (void*)&key_schedule[0]);
+    add_round_key(state, (uint8_t*)&key_schedule[0]);
     sub_bytes(state);
     shift_rows(state);
     mix_columns(state);
-    add_round_key(state, (void*)&key_schedule[4]);
+    add_round_key(state, (uint8_t*)&key_schedule[4]);
 
     /* final round of the algorithm */
     sub_bytes(state);
     shift_rows(state);
-    add_round_key(state, (void*)&key_schedule[8]);
+    add_round_key(state, (uint8_t*)&key_schedule[8]);
 
 #endif
 }
@@ -546,7 +546,7 @@ static inline uint32_t rf_rambox(uint64_t *rambox, uint64_t old) {
 }
 
 // write (_x_,_y_) at cell _cell_ for offset _ofs_
-static inline void rf_w128(uint64_t *cell, unsigned long ofs, uint64_t x, uint64_t y) {
+static inline void rf_w128(uint64_t *cell, size_t ofs, uint64_t x, uint64_t y) {
 #if defined(__ARM_ARCH_8A) || defined(__AARCH64EL__)
   // 128 bit at once is faster when exactly two parallelizable instructions are
   // used between two calls to keep the pipe full.
@@ -775,7 +775,7 @@ static void rf256_update(rf256_ctx_t *ctx, const void *msg, size_t len) {
       continue;
     }
 #endif
-    ctx->word |= (uint32_t)*(ptr++) << (8 * (ctx->len++ & 3));
+    ctx->word |= (uint32_t) * (ptr++) << (8 * (ctx->len++ & 3));
     len--;
     if (!(ctx->len&3))
       rf256_one_round(ctx);
