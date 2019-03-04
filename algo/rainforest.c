@@ -229,7 +229,6 @@ static void aes2r_encrypt(uint8_t * state, uint8_t * key) {
 
 // this seems necessary only for gcc, otherwise hash is bogus
 #ifdef _MSC_VER
-typedef unsigned long ulong;
 typedef uint8_t  rf_u8;
 typedef uint16_t rf_u16;
 typedef uint32_t rf_u32;
@@ -547,7 +546,7 @@ static inline uint32_t rf_rambox(uint64_t *rambox, uint64_t old) {
 }
 
 // write (_x_,_y_) at cell _cell_ for offset _ofs_
-static inline void rf_w128(uint64_t *cell, ulong ofs, uint64_t x, uint64_t y) {
+static inline void rf_w128(uint64_t *cell, unsigned long ofs, uint64_t x, uint64_t y) {
 #if defined(__ARM_ARCH_8A) || defined(__AARCH64EL__)
   // 128 bit at once is faster when exactly two parallelizable instructions are
   // used between two calls to keep the pipe full.
