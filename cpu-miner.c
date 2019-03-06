@@ -112,6 +112,7 @@ enum algos {
 	ALGO_PLUCK,       /* Pluck (Supcoin) */
 	ALGO_QUBIT,       /* Qubit */
 	ALGO_RAINFOREST,  /* RainForest */
+	ALGO_RAINFOREST_CN, /* RainForest CryptoNote (Karbo) */
 	ALGO_SCRYPT,      /* scrypt */
 	ALGO_SCRYPTJANE,  /* Chacha */
 	ALGO_SHAVITE3,    /* Shavite3 */
@@ -179,6 +180,7 @@ static const char *algo_names[] = {
 	"pluck",
 	"qubit",
 	"rainforest",
+	"rainforest-cn",
 	"scrypt",
 	"scrypt-jane",
 	"shavite3",
@@ -345,6 +347,7 @@ Options:\n\
                           quark        Quark\n\
                           qubit        Qubit\n\
                           rainforest   RainForest (256)\n\
+						  rainforest-cn RainForest CryptoNote (256)\n\
                           scrypt       scrypt(1024, 1, 1) (default)\n\
                           scrypt:N     scrypt(N, 1, 1)\n\
                           scrypt-jane:N (with N factor from 4 to 30)\n\
@@ -1144,7 +1147,7 @@ static bool submit_upstream_work(CURL *curl, struct work *work)
 				break;
 			case ALGO_CRYPTONIGHT:
 				cryptonight_hash(hash, work->data);
-			case ALGO_RAINFOREST:
+			case ALGO_RAINFOREST_CN:
 				rainforest_hash(hash, work->data);
 			default:
 				break;
@@ -1280,7 +1283,7 @@ static bool submit_upstream_work(CURL *curl, struct work *work)
 				break;
 			case ALGO_CRYPTONIGHT:
 				cryptonight_hash(hash, work->data);
-			case ALGO_RAINFOREST:
+			case ALGO_RAINFOREST_CN:
 				rainforest_hash(hash, work->data);
 			default:
 				break;
@@ -2181,7 +2184,7 @@ static void *miner_thread(void *userdata)
 			case ALGO_AXIOM:
 			case ALGO_CRYPTOLIGHT:
 			case ALGO_CRYPTONIGHT:
-			//case ALGO_RAINFOREST:
+			case ALGO_RAINFOREST:
 			case ALGO_SCRYPTJANE:
 				max64 = 0x40LL;
 				break;
@@ -2360,8 +2363,10 @@ static void *miner_thread(void *userdata)
 			rc = scanhash_qubit(thr_id, &work, max_nonce, &hashes_done);
 			break;
 		case ALGO_RAINFOREST:
+			rc = scanhash_rf256(thr_id, &work, max_nonce, &hashes_done);
+			break;
+		case ALGO_RAINFOREST_CN:
 			rc = scanhash_rf256_cn(thr_id, &work, max_nonce, &hashes_done);
-			//rc = scanhash_rf256(thr_id, &work, max_nonce, &hashes_done);
 			break;
 		case ALGO_SCRYPT:
 			rc = scanhash_scrypt(thr_id, &work, max_nonce, &hashes_done, scratchbuf, opt_scrypt_n);
@@ -2978,6 +2983,8 @@ void parse_arg(int key, char *arg)
 				i = opt_algo = ALGO_BITCORE;
 			else if (!strcasecmp("ziftr", arg))
 				i = opt_algo = ALGO_ZR5;
+			else if (!strcasecmp("karbo", arg))
+				i = opt_algo = ALGO_RAINFOREST_CN;
 			else
 				applog(LOG_ERR, "Unknown algo parameter '%s'", arg);
 		}
@@ -3478,7 +3485,7 @@ int main(int argc, char *argv[]) {
 			applog(LOG_INFO, "Using JSON-RPC 2.0");
 			applog(LOG_INFO, "CPU Supports AES-NI: %s", aes_ni_supported ? "YES" : "NO");
 		}
-	} else if (opt_algo == ALGO_RAINFOREST) {
+	} else if (opt_algo == ALGO_RAINFOREST_CN) {
 		jsonrpc_2 = true;
 		opt_extranonce = false;
 		if (!opt_quiet) {
