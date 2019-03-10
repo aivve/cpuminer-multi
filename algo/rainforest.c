@@ -812,81 +812,90 @@ void rf256_hash(void *out, const void *in, size_t len) {
   rf256_final(out, &ctx);
 }
 
-void rainforest_hash(char* output, const char* input) {
-  rf256_hash(output, input, 76);
+void rainforest_hash(void *output, const void *input) {
+  uint32_t _ALIGN(32) hash[16];
+
+  rf256_ctx_t ctx;
+
+  rf256_init(&ctx);
+  rf256_update(&ctx, input, 80);
+  rf256_final(hash, &ctx);
+  rf256_update(&ctx, hash, 64);
+  rf256_final(output, &ctx);
 }
 
 int scanhash_rf256(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done)
 {
-	uint32_t _ALIGN(64) hash[8];
-	uint32_t _ALIGN(64) endiandata[20];
-	uint32_t *pdata = work->data;
-	uint32_t *ptarget = work->target;
+  uint32_t _ALIGN(64) hash[8];
+  uint32_t _ALIGN(64) endiandata[20];
+  uint32_t *pdata = work->data;
+  uint32_t *ptarget = work->target;
 
-	const uint32_t Htarg = ptarget[7];
-	const uint32_t first_nonce = pdata[19];
-	uint32_t nonce = first_nonce;
-	volatile uint8_t *restart = &(work_restart[thr_id].restart);
+  const uint32_t Htarg = ptarget[7];
+  const uint32_t first_nonce = pdata[19];
+  uint32_t nonce = first_nonce;
+  volatile uint8_t *restart = &(work_restart[thr_id].restart);
 
-	rf256_ctx_t ctx, ctx_common;
+  rf256_ctx_t ctx, ctx_common;
 
-	if (opt_benchmark)
-		ptarget[7] = 0x0cff;
+  if (opt_benchmark)
+    ptarget[7] = 0x0cff;
 
-	//printf("thd%d work=%p htarg=%08x ptarg7=%08x first_nonce=%08x max_nonce=%08x hashes_done=%Lu\n",
-	//       thr_id, work, Htarg, ptarget[7], first_nonce, max_nonce, (unsigned long)*hashes_done);
+  //printf("thd%d work=%p htarg=%08x ptarg7=%08x first_nonce=%08x max_nonce=%08x hashes_done=%Lu\n",
+  //       thr_id, work, Htarg, ptarget[7], first_nonce, max_nonce, (unsigned long)*hashes_done);
 
-	for (int k=0; k < 19; k++)
-		be32enc(&endiandata[k], pdata[k]);
+  for (int k=0; k < 19; k++)
+    be32enc(&endiandata[k], pdata[k]);
 
-	// pre-compute the hash state based on the constant part of the header
-	rf256_init(&ctx_common);
-	rf256_update(&ctx_common, endiandata, 76);
+  // pre-compute the hash state based on the constant part of the header
+  rf256_init(&ctx_common);
+  rf256_update(&ctx_common, endiandata, 76);
 
-	do {
-		be32enc(&endiandata[19], nonce);
+  do {
+    be32enc(&endiandata[19], nonce);
 #ifndef RF_DISABLE_CTX_MEMCPY
-		memcpy(&ctx, &ctx_common, sizeof(ctx));
-		rf256_update(&ctx, endiandata+19, 4);
-		rf256_final(hash, &ctx);
+    memcpy(&ctx, &ctx_common, sizeof(ctx));
+    rf256_update(&ctx, endiandata+19, 4);
+    rf256_final(hash, &ctx);
 #else
-		rf256_hash(hash, endiandata, 80);
+    rf256_hash(hash, endiandata, 80);
 #endif
 
-		if (hash[7] <= Htarg && fulltest(hash, ptarget)) {
-			work_set_target_ratio(work, hash);
-			pdata[19] = nonce;
-			*hashes_done = pdata[19] - first_nonce;
-			return 1;
-		}
-		nonce++;
-	} while (nonce < max_nonce && !(*restart));
+    if (hash[7] <= Htarg && fulltest(hash, ptarget)) {
+      work_set_target_ratio(work, hash);
+      pdata[19] = nonce;
+      *hashes_done = pdata[19] - first_nonce;
+      return 1;
+    }
+    nonce++;
+  } while (nonce < max_nonce && !(*restart));
 
-	pdata[19] = nonce;
-	*hashes_done = pdata[19] - first_nonce + 1;
-	return 0;
+  pdata[19] = nonce;
+  *hashes_done = pdata[19] - first_nonce + 1;
+  return 0;
 }
 
 int scanhash_rf256_cn(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done)
 {
-	uint32_t _ALIGN(128) hash[8];
-	uint32_t *pdata = work->data;
-	uint32_t *ptarget = work->target;
+  uint32_t _ALIGN(128) hash[8];
+  uint32_t *pdata = work->data;
+  uint32_t *ptarget = work->target;
 
-	uint32_t *nonceptr = (uint32_t*)(((char*)pdata) + 39);
-	uint32_t n = *nonceptr - 1;
-	const uint32_t first_nonce = n + 1;
+  uint32_t *nonceptr = (uint32_t*)(((char*)pdata) + 39);
+  uint32_t n = *nonceptr - 1;
+  const uint32_t first_nonce = n + 1;
 
-	do {
-		*nonceptr = ++n;
-		rf256_hash(hash, pdata, 76);
-		if (unlikely(hash[7] < ptarget[7])) {
-			work_set_target_ratio(work, hash);
-			*hashes_done = n - first_nonce + 1;
-			return 1;
-		}
-	} while (likely((n <= max_nonce && !work_restart[thr_id].restart)));
+  do {
+    *nonceptr = ++n;
 
-	*hashes_done = n - first_nonce + 1;
-	return 0;
+    rainforest_hash(hash, pdata);
+    if (unlikely(hash[7] < ptarget[7])) {
+      work_set_target_ratio(work, hash);
+      *hashes_done = n - first_nonce + 1;
+      return 1;
+    }
+  } while (likely((n <= max_nonce && !work_restart[thr_id].restart)));
+
+  *hashes_done = n - first_nonce + 1;
+  return 0;
 }
