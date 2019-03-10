@@ -786,14 +786,14 @@ static void rf256_update(rf256_ctx_t *ctx, const void *msg, size_t len) {
 // finalize the hash and copy the result into _out_ if not null (256 bits)
 static void rf256_final(void *out, rf256_ctx_t *ctx) {
   // BS: never happens with 80 input bytes
-  //uint32_t pad;
+  uint32_t pad;
 
-  //if (ctx->len&3)
-  //  rf256_one_round(ctx);
+  if (ctx->len&3)
+    rf256_one_round(ctx);
 
   // always work on at least 256 bits of input
-  //for (pad=0; pad+ctx->len < 32;pad+=4)
-  //  rf256_one_round(ctx);
+  for (pad=0; pad+ctx->len < 32;pad+=4)
+    rf256_one_round(ctx);
 
   // always run 4 extra rounds to complete the last 128 bits
   rf256_one_round(ctx);
@@ -813,15 +813,15 @@ void rf256_hash(void *out, const void *in, size_t len) {
 }
 
 void rainforest_hash(void *output, const void *input) {
-  uint32_t _ALIGN(32) hash[16];
-
+  uint32_t _ALIGN(64) hash[32];
   rf256_ctx_t ctx;
-
   rf256_init(&ctx);
-  rf256_update(&ctx, input, 80);
+  rf256_update(&ctx, input, 76);
   rf256_final(hash, &ctx);
   rf256_update(&ctx, hash, 64);
   rf256_final(output, &ctx);
+
+  //memcpy(output, hash, 32);
 }
 
 int scanhash_rf256(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done)
@@ -880,7 +880,6 @@ int scanhash_rf256_cn(int thr_id, struct work *work, uint32_t max_nonce, uint64_
   uint32_t _ALIGN(128) hash[8];
   uint32_t *pdata = work->data;
   uint32_t *ptarget = work->target;
-
   uint32_t *nonceptr = (uint32_t*)(((char*)pdata) + 39);
   uint32_t n = *nonceptr - 1;
   const uint32_t first_nonce = n + 1;
