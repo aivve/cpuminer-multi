@@ -411,39 +411,39 @@ static inline uint32_t rf_crc32_32(uint32_t crc, uint32_t msg) {
   return crc;
 }
 
-//static inline uint32_t rf_crc32_24(uint32_t crc, uint32_t msg) {
-//#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
-//  asm("crc32b %w0,%w0,%w1\n":"+r"(crc):"r"(msg));
-//  asm("crc32h %w0,%w0,%w1\n":"+r"(crc):"r"(msg>>8));
-//#else
-//  crc=crc^msg;
-//  crc=rf_crc32_table[crc&0xff]^(crc>>8);
-//  crc=rf_crc32_table[crc&0xff]^(crc>>8);
-//  crc=rf_crc32_table[crc&0xff]^(crc>>8);
-//#endif
-//  return crc;
-//}
-//
-//static inline uint32_t rf_crc32_16(uint32_t crc, uint32_t msg) {
-//#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
-//  asm("crc32h %w0,%w0,%w1\n":"+r"(crc):"r"(msg));
-//#else
-//  crc=crc^msg;
-//  crc=rf_crc32_table[crc&0xff]^(crc>>8);
-//  crc=rf_crc32_table[crc&0xff]^(crc>>8);
-//#endif
-//  return crc;
-//}
-//
-//static inline uint32_t rf_crc32_8(uint32_t crc, uint32_t msg) {
-//#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
-//  asm("crc32b %w0,%w0,%w1\n":"+r"(crc):"r"(msg));
-//#else
-//  crc=crc^msg;
-//  crc=rf_crc32_table[crc&0xff]^(crc>>8);
-//#endif
-//  return crc;
-//}
+static inline uint32_t rf_crc32_24(uint32_t crc, uint32_t msg) {
+#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+  __asm__("crc32b %w0,%w0,%w1\n":"+r"(crc):"r"(msg));
+  __asm__("crc32h %w0,%w0,%w1\n":"+r"(crc):"r"(msg>>8));
+#else
+  crc=crc^msg;
+  crc=rf_crc32_table[crc&0xff]^(crc>>8);
+  crc=rf_crc32_table[crc&0xff]^(crc>>8);
+  crc=rf_crc32_table[crc&0xff]^(crc>>8);
+#endif
+  return crc;
+}
+
+static inline uint32_t rf_crc32_16(uint32_t crc, uint32_t msg) {
+#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+  __asm__("crc32h %w0,%w0,%w1\n":"+r"(crc):"r"(msg));
+#else
+  crc=crc^msg;
+  crc=rf_crc32_table[crc&0xff]^(crc>>8);
+  crc=rf_crc32_table[crc&0xff]^(crc>>8);
+#endif
+  return crc;
+}
+
+static inline uint32_t rf_crc32_8(uint32_t crc, uint32_t msg) {
+#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+  __asm__("crc32b %w0,%w0,%w1\n":"+r"(crc):"r"(msg));
+#else
+  crc=crc^msg;
+  crc=rf_crc32_table[crc&0xff]^(crc>>8);
+#endif
+  return crc;
+}
 
 // add to _msg_ its own crc32. use -mcpu=cortex-a53+crc to enable native CRC
 // instruction on ARM.
@@ -659,14 +659,12 @@ static inline uint32_t rf256_scramble(rf256_ctx_t *ctx) {
 
 // mix the state with the crc and the pending text, and update the crc
 static inline void rf256_inject(rf256_ctx_t *ctx) {
-  // BS: never <4 bytes with 80 input bytes
-  //ctx->crc=
-  //  (ctx->bytes&3)==0?rf_crc32_32(rf256_scramble(ctx), ctx->word):
-  //  (ctx->bytes&3)==3?rf_crc32_24(rf256_scramble(ctx), ctx->word):
-  //  (ctx->bytes&3)==2?rf_crc32_16(rf256_scramble(ctx), ctx->word):
-  //                    rf_crc32_8(rf256_scramble(ctx), ctx->word);
-  ctx->crc=rf_crc32_32(rf256_scramble(ctx), ctx->word);
-  ctx->word=0;
+  ctx->crc =
+    (ctx->len & 3) == 0 ? rf_crc32_32(rf256_scramble(ctx), ctx->word) :
+    (ctx->len & 3) == 3 ? rf_crc32_24(rf256_scramble(ctx), ctx->word) :
+    (ctx->len & 3) == 2 ? rf_crc32_16(rf256_scramble(ctx), ctx->word) :
+    rf_crc32_8(rf256_scramble(ctx), ctx->word);
+  ctx->word = 0;
 }
 
 // rotate the hash by 32 bits. Not using streaming instructions (SSE/NEON) is
@@ -786,14 +784,14 @@ static void rf256_update(rf256_ctx_t *ctx, const void *msg, size_t len) {
 // finalize the hash and copy the result into _out_ if not null (256 bits)
 static void rf256_final(void *out, rf256_ctx_t *ctx) {
   // BS: never happens with 80 input bytes
-  //uint32_t pad;
+  uint32_t pad;
 
-  //if (ctx->len&3)
-  //  rf256_one_round(ctx);
+  if (ctx->len&3)
+    rf256_one_round(ctx);
 
   // always work on at least 256 bits of input
-  //for (pad=0; pad+ctx->len < 32;pad+=4)
-  //  rf256_one_round(ctx);
+  for (pad=0; pad+ctx->len < 32;pad+=4)
+    rf256_one_round(ctx);
 
   // always run 4 extra rounds to complete the last 128 bits
   rf256_one_round(ctx);
@@ -812,81 +810,83 @@ void rf256_hash(void *out, const void *in, size_t len) {
   rf256_final(out, &ctx);
 }
 
-void rainforest_hash(char* output, const char* input) {
-  rf256_hash(output, input, 76);
+void rainforest_hash(void *output, const void *input) {
+  uint32_t _ALIGN(128) hash[8];
+  rf256_hash(hash, input, 76);
+  rf256_hash(output, hash, 32);
 }
 
 int scanhash_rf256(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done)
 {
-	uint32_t _ALIGN(64) hash[8];
-	uint32_t _ALIGN(64) endiandata[20];
-	uint32_t *pdata = work->data;
-	uint32_t *ptarget = work->target;
+  uint32_t _ALIGN(64) hash[8];
+  uint32_t _ALIGN(64) endiandata[20];
+  uint32_t *pdata = work->data;
+  uint32_t *ptarget = work->target;
 
-	const uint32_t Htarg = ptarget[7];
-	const uint32_t first_nonce = pdata[19];
-	uint32_t nonce = first_nonce;
-	volatile uint8_t *restart = &(work_restart[thr_id].restart);
+  const uint32_t Htarg = ptarget[7];
+  const uint32_t first_nonce = pdata[19];
+  uint32_t nonce = first_nonce;
+  volatile uint8_t *restart = &(work_restart[thr_id].restart);
 
-	rf256_ctx_t ctx, ctx_common;
+  rf256_ctx_t ctx, ctx_common;
 
-	if (opt_benchmark)
-		ptarget[7] = 0x0cff;
+  if (opt_benchmark)
+    ptarget[7] = 0x0cff;
 
-	//printf("thd%d work=%p htarg=%08x ptarg7=%08x first_nonce=%08x max_nonce=%08x hashes_done=%Lu\n",
-	//       thr_id, work, Htarg, ptarget[7], first_nonce, max_nonce, (unsigned long)*hashes_done);
+  //printf("thd%d work=%p htarg=%08x ptarg7=%08x first_nonce=%08x max_nonce=%08x hashes_done=%Lu\n",
+  //       thr_id, work, Htarg, ptarget[7], first_nonce, max_nonce, (unsigned long)*hashes_done);
 
-	for (int k=0; k < 19; k++)
-		be32enc(&endiandata[k], pdata[k]);
+  for (int k=0; k < 19; k++)
+    be32enc(&endiandata[k], pdata[k]);
 
-	// pre-compute the hash state based on the constant part of the header
-	rf256_init(&ctx_common);
-	rf256_update(&ctx_common, endiandata, 76);
+  // pre-compute the hash state based on the constant part of the header
+  rf256_init(&ctx_common);
+  rf256_update(&ctx_common, endiandata, 76);
 
-	do {
-		be32enc(&endiandata[19], nonce);
+  do {
+    be32enc(&endiandata[19], nonce);
 #ifndef RF_DISABLE_CTX_MEMCPY
-		memcpy(&ctx, &ctx_common, sizeof(ctx));
-		rf256_update(&ctx, endiandata+19, 4);
-		rf256_final(hash, &ctx);
+    memcpy(&ctx, &ctx_common, sizeof(ctx));
+    rf256_update(&ctx, endiandata+19, 4);
+    rf256_final(hash, &ctx);
 #else
-		rf256_hash(hash, endiandata, 80);
+    rf256_hash(hash, endiandata, 80);
 #endif
 
-		if (hash[7] <= Htarg && fulltest(hash, ptarget)) {
-			work_set_target_ratio(work, hash);
-			pdata[19] = nonce;
-			*hashes_done = pdata[19] - first_nonce;
-			return 1;
-		}
-		nonce++;
-	} while (nonce < max_nonce && !(*restart));
+    if (hash[7] <= Htarg && fulltest(hash, ptarget)) {
+      work_set_target_ratio(work, hash);
+      pdata[19] = nonce;
+      *hashes_done = pdata[19] - first_nonce;
+      return 1;
+    }
+    nonce++;
+  } while (nonce < max_nonce && !(*restart));
 
-	pdata[19] = nonce;
-	*hashes_done = pdata[19] - first_nonce + 1;
-	return 0;
+  pdata[19] = nonce;
+  *hashes_done = pdata[19] - first_nonce + 1;
+  return 0;
 }
 
 int scanhash_rf256_cn(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done)
 {
-	uint32_t _ALIGN(128) hash[8];
-	uint32_t *pdata = work->data;
-	uint32_t *ptarget = work->target;
+  uint32_t _ALIGN(128) hash[8];
+  uint32_t *pdata = work->data;
+  uint32_t *ptarget = work->target;
+  uint32_t *nonceptr = (uint32_t*)(((char*)pdata) + 39);
+  uint32_t n = *nonceptr - 1;
+  const uint32_t first_nonce = n + 1;
 
-	uint32_t *nonceptr = (uint32_t*)(((char*)pdata) + 39);
-	uint32_t n = *nonceptr - 1;
-	const uint32_t first_nonce = n + 1;
+  do {
+    *nonceptr = ++n;
 
-	do {
-		*nonceptr = ++n;
-		rf256_hash(hash, pdata, 76);
-		if (unlikely(hash[7] < ptarget[7])) {
-			work_set_target_ratio(work, hash);
-			*hashes_done = n - first_nonce + 1;
-			return 1;
-		}
-	} while (likely((n <= max_nonce && !work_restart[thr_id].restart)));
+    rainforest_hash(hash, pdata);
+    if (unlikely(hash[7] < ptarget[7])) {
+      work_set_target_ratio(work, hash);
+      *hashes_done = n - first_nonce + 1;
+      return 1;
+    }
+  } while (likely((n <= max_nonce && !work_restart[thr_id].restart)));
 
-	*hashes_done = n - first_nonce + 1;
-	return 0;
+  *hashes_done = n - first_nonce + 1;
+  return 0;
 }
