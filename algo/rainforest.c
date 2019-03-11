@@ -411,39 +411,39 @@ static inline uint32_t rf_crc32_32(uint32_t crc, uint32_t msg) {
   return crc;
 }
 
-//static inline uint32_t rf_crc32_24(uint32_t crc, uint32_t msg) {
-//#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
-//  asm("crc32b %w0,%w0,%w1\n":"+r"(crc):"r"(msg));
-//  asm("crc32h %w0,%w0,%w1\n":"+r"(crc):"r"(msg>>8));
-//#else
-//  crc=crc^msg;
-//  crc=rf_crc32_table[crc&0xff]^(crc>>8);
-//  crc=rf_crc32_table[crc&0xff]^(crc>>8);
-//  crc=rf_crc32_table[crc&0xff]^(crc>>8);
-//#endif
-//  return crc;
-//}
-//
-//static inline uint32_t rf_crc32_16(uint32_t crc, uint32_t msg) {
-//#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
-//  asm("crc32h %w0,%w0,%w1\n":"+r"(crc):"r"(msg));
-//#else
-//  crc=crc^msg;
-//  crc=rf_crc32_table[crc&0xff]^(crc>>8);
-//  crc=rf_crc32_table[crc&0xff]^(crc>>8);
-//#endif
-//  return crc;
-//}
-//
-//static inline uint32_t rf_crc32_8(uint32_t crc, uint32_t msg) {
-//#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
-//  asm("crc32b %w0,%w0,%w1\n":"+r"(crc):"r"(msg));
-//#else
-//  crc=crc^msg;
-//  crc=rf_crc32_table[crc&0xff]^(crc>>8);
-//#endif
-//  return crc;
-//}
+static inline uint32_t rf_crc32_24(uint32_t crc, uint32_t msg) {
+#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+  __asm__("crc32b %w0,%w0,%w1\n":"+r"(crc):"r"(msg));
+  __asm__("crc32h %w0,%w0,%w1\n":"+r"(crc):"r"(msg>>8));
+#else
+  crc=crc^msg;
+  crc=rf_crc32_table[crc&0xff]^(crc>>8);
+  crc=rf_crc32_table[crc&0xff]^(crc>>8);
+  crc=rf_crc32_table[crc&0xff]^(crc>>8);
+#endif
+  return crc;
+}
+
+static inline uint32_t rf_crc32_16(uint32_t crc, uint32_t msg) {
+#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+  __asm__("crc32h %w0,%w0,%w1\n":"+r"(crc):"r"(msg));
+#else
+  crc=crc^msg;
+  crc=rf_crc32_table[crc&0xff]^(crc>>8);
+  crc=rf_crc32_table[crc&0xff]^(crc>>8);
+#endif
+  return crc;
+}
+
+static inline uint32_t rf_crc32_8(uint32_t crc, uint32_t msg) {
+#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+  __asm__("crc32b %w0,%w0,%w1\n":"+r"(crc):"r"(msg));
+#else
+  crc=crc^msg;
+  crc=rf_crc32_table[crc&0xff]^(crc>>8);
+#endif
+  return crc;
+}
 
 // add to _msg_ its own crc32. use -mcpu=cortex-a53+crc to enable native CRC
 // instruction on ARM.
@@ -659,14 +659,12 @@ static inline uint32_t rf256_scramble(rf256_ctx_t *ctx) {
 
 // mix the state with the crc and the pending text, and update the crc
 static inline void rf256_inject(rf256_ctx_t *ctx) {
-  // BS: never <4 bytes with 80 input bytes
-  //ctx->crc=
-  //  (ctx->bytes&3)==0?rf_crc32_32(rf256_scramble(ctx), ctx->word):
-  //  (ctx->bytes&3)==3?rf_crc32_24(rf256_scramble(ctx), ctx->word):
-  //  (ctx->bytes&3)==2?rf_crc32_16(rf256_scramble(ctx), ctx->word):
-  //                    rf_crc32_8(rf256_scramble(ctx), ctx->word);
-  ctx->crc=rf_crc32_32(rf256_scramble(ctx), ctx->word);
-  ctx->word=0;
+  ctx->crc =
+    (ctx->len & 3) == 0 ? rf_crc32_32(rf256_scramble(ctx), ctx->word) :
+    (ctx->len & 3) == 3 ? rf_crc32_24(rf256_scramble(ctx), ctx->word) :
+    (ctx->len & 3) == 2 ? rf_crc32_16(rf256_scramble(ctx), ctx->word) :
+    rf_crc32_8(rf256_scramble(ctx), ctx->word);
+  ctx->word = 0;
 }
 
 // rotate the hash by 32 bits. Not using streaming instructions (SSE/NEON) is
@@ -813,15 +811,9 @@ void rf256_hash(void *out, const void *in, size_t len) {
 }
 
 void rainforest_hash(void *output, const void *input) {
-  uint32_t _ALIGN(64) hash[32];
-  rf256_ctx_t ctx;
-  rf256_init(&ctx);
-  rf256_update(&ctx, input, 76);
-  rf256_final(hash, &ctx);
-  rf256_update(&ctx, hash, 64);
-  rf256_final(output, &ctx);
-
-  //memcpy(output, hash, 32);
+  uint32_t _ALIGN(128) hash[8];
+  rf256_hash(hash, input, 76);
+  rf256_hash(output, hash, 32);
 }
 
 int scanhash_rf256(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done)
