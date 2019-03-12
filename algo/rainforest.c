@@ -812,7 +812,7 @@ void rf256_hash(void *out, const void *in, size_t len) {
   rf256_final(out, &ctx);
 }
 
-void rainforest_hash(char* output, const char* input) {
+void rainforest_hash(void* output, const void* input) {
   rf256_hash(output, input, 76);
 }
 
