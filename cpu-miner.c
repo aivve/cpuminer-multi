@@ -77,65 +77,66 @@ struct workio_cmd {
 };
 
 enum algos {
-	ALGO_KECCAK,      /* Keccak (old) */
-	ALGO_KECCAKC,     /* Keccak */
-	ALGO_HEAVY,       /* Heavy */
-	ALGO_NEOSCRYPT,   /* NeoScrypt(128, 2, 1) with Salsa20/20 and ChaCha20/20 */
-	ALGO_QUARK,       /* Quark */
-	ALGO_ALLIUM,      /* Garlicoin double lyra2 */
-	ALGO_AXIOM,       /* Shabal 256 Memohash */
+	ALGO_KECCAK,        /* Keccak (old) */
+	ALGO_KECCAKC,       /* Keccak */
+	ALGO_HEAVY,         /* Heavy */
+	ALGO_NEOSCRYPT,     /* NeoScrypt(128, 2, 1) with Salsa20/20 and ChaCha20/20 */
+	ALGO_QUARK,         /* Quark */
+	ALGO_ALLIUM,        /* Garlicoin double lyra2 */
+	ALGO_AXIOM,         /* Shabal 256 Memohash */
 	ALGO_BASTION,
-	ALGO_BLAKE,       /* Blake 256 */
-	ALGO_BLAKECOIN,   /* Simplified 8 rounds Blake 256 */
+	ALGO_BLAKE,         /* Blake 256 */
+	ALGO_BLAKECOIN,     /* Simplified 8 rounds Blake 256 */
 	ALGO_BLAKE2B,
-	ALGO_BLAKE2S,     /* Blake2s */
-	ALGO_BMW,         /* BMW 256 */
-	ALGO_C11,         /* C11 Chaincoin/Flaxcoin X11 variant */
-	ALGO_CRYPTOLIGHT, /* cryptonight-light (Aeon) */
-	ALGO_CRYPTONIGHT, /* CryptoNight */
-	ALGO_DECRED,      /* Decred */
-	ALGO_DMD_GR,      /* Diamond */
-	ALGO_DROP,        /* Dropcoin */
-	ALGO_FRESH,       /* Fresh */
-	ALGO_GROESTL,     /* Groestl */
+	ALGO_BLAKE2S,       /* Blake2s */
+	ALGO_BMW,           /* BMW 256 */
+	ALGO_C11,           /* C11 Chaincoin/Flaxcoin X11 variant */
+	ALGO_CRYPTOLIGHT,   /* cryptonight-light (Aeon) */
+	ALGO_CRYPTONIGHT,   /* CryptoNight */
+	ALGO_DECRED,        /* Decred */
+	ALGO_DMD_GR,        /* Diamond */
+	ALGO_DROP,          /* Dropcoin */
+	ALGO_FRESH,         /* Fresh */
+	ALGO_GROESTL,       /* Groestl */
 	ALGO_JHA,
-	ALGO_LBRY,        /* Lbry Sha Ripemd */
-	ALGO_LUFFA,       /* Luffa (Joincoin, Doom) */
-	ALGO_LYRA2,       /* Lyra2RE */
-	ALGO_LYRA2REV2,   /* Lyra2REv2 */
-	ALGO_LYRA2V3,     /* Lyra2REv3 (Vertcoin) */
-	ALGO_MYR_GR,      /* Myriad Groestl */
-	ALGO_NIST5,       /* Nist5 */
-	ALGO_PENTABLAKE,  /* Pentablake */
+	ALGO_LBRY,          /* Lbry Sha Ripemd */
+	ALGO_LUFFA,         /* Luffa (Joincoin, Doom) */
+	ALGO_LYRA2,         /* Lyra2RE */
+	ALGO_LYRA2REV2,     /* Lyra2REv2 */
+	ALGO_LYRA2V3,       /* Lyra2REv3 (Vertcoin) */
+	ALGO_MYR_GR,        /* Myriad Groestl */
+	ALGO_NIST5,         /* Nist5 */
+	ALGO_PENTABLAKE,    /* Pentablake */
 	ALGO_PHI1612,
 	ALGO_PHI2,
-	ALGO_PLUCK,       /* Pluck (Supcoin) */
-	ALGO_QUBIT,       /* Qubit */
-	ALGO_RAINFOREST,  /* RainForest */
-	ALGO_SCRYPT,      /* scrypt */
-	ALGO_SCRYPTJANE,  /* Chacha */
-	ALGO_SHAVITE3,    /* Shavite3 */
-	ALGO_SHA256D,     /* SHA-256d */
-	ALGO_SIA,         /* Blake2-B */
-	ALGO_SIB,         /* X11 + gost (Sibcoin) */
-	ALGO_SKEIN,       /* Skein */
-	ALGO_SKEIN2,      /* Double skein (Woodcoin) */
+	ALGO_PLUCK,         /* Pluck (Supcoin) */
+	ALGO_QUBIT,         /* Qubit */
+	ALGO_RAINFOREST,    /* RainForest */
+	ALGO_RAINFOREST_V2, /* RainForest */
+	ALGO_SCRYPT,        /* scrypt */
+	ALGO_SCRYPTJANE,    /* Chacha */
+	ALGO_SHAVITE3,      /* Shavite3 */
+	ALGO_SHA256D,       /* SHA-256d */
+	ALGO_SIA,           /* Blake2-B */
+	ALGO_SIB,           /* X11 + gost (Sibcoin) */
+	ALGO_SKEIN,         /* Skein */
+	ALGO_SKEIN2,        /* Double skein (Woodcoin) */
 	ALGO_SONOA,
-	ALGO_S3,          /* S3 */
-	ALGO_TIMETRAVEL,  /* Timetravel-8 (Machinecoin) */
-	ALGO_BITCORE,     /* Timetravel-10 (Bitcore) */
-	ALGO_TRIBUS,      /* Denarius jh/keccak/echo */
-	ALGO_VANILLA,     /* Vanilla (Blake256 8-rounds - double sha256) */
-	ALGO_VELTOR,      /* Skein Shavite Shabal Streebog */
-	ALGO_X11EVO,      /* Permuted X11 */
-	ALGO_X11,         /* X11 */
+	ALGO_S3,            /* S3 */
+	ALGO_TIMETRAVEL,    /* Timetravel-8 (Machinecoin) */
+	ALGO_BITCORE,       /* Timetravel-10 (Bitcore) */
+	ALGO_TRIBUS,        /* Denarius jh/keccak/echo */
+	ALGO_VANILLA,       /* Vanilla (Blake256 8-rounds - double sha256) */
+	ALGO_VELTOR,        /* Skein Shavite Shabal Streebog */
+	ALGO_X11EVO,        /* Permuted X11 */
+	ALGO_X11,           /* X11 */
 	ALGO_X12,
-	ALGO_X13,         /* X13 */
-	ALGO_X14,         /* X14 */
-	ALGO_X15,         /* X15 */
+	ALGO_X13,           /* X13 */
+	ALGO_X14,           /* X14 */
+	ALGO_X15,           /* X15 */
 	ALGO_X16R,
 	ALGO_X16S,
-	ALGO_X17,         /* X17 */
+	ALGO_X17,           /* X17 */
 	ALGO_X20R,
 	ALGO_XEVAN,
 	ALGO_YESCRYPT,
@@ -179,6 +180,7 @@ static const char *algo_names[] = {
 	"pluck",
 	"qubit",
 	"rainforest",
+	"rfv2",
 	"scrypt",
 	"scrypt-jane",
 	"shavite3",
@@ -345,6 +347,7 @@ Options:\n\
                           quark        Quark\n\
                           qubit        Qubit\n\
                           rainforest   RainForest (256)\n\
+                          rfv2         RainForestV2\n\
                           scrypt       scrypt(1024, 1, 1) (default)\n\
                           scrypt:N     scrypt(N, 1, 1)\n\
                           scrypt-jane:N (with N factor from 4 to 30)\n\
@@ -1082,6 +1085,7 @@ static int share_result(int result, struct work *work, const char *reason)
 	case ALGO_CRYPTONIGHT:
 	case ALGO_PLUCK:
 	case ALGO_SCRYPTJANE:
+	case ALGO_RAINFOREST_V2:
 		sprintf(s, hashrate >= 1e6 ? "%.0f" : "%.2f", hashrate);
 		applog(LOG_NOTICE, "accepted: %lu/%lu (%s), %s H/s %s",
 			accepted_count, accepted_count + rejected_count,
@@ -2183,6 +2187,7 @@ static void *miner_thread(void *userdata)
 			case ALGO_DROP:
 			case ALGO_PLUCK:
 			case ALGO_YESCRYPT:
+			case ALGO_RAINFOREST_V2:
 				max64 = 0x1ff;
 				break;
 			case ALGO_ALLIUM:
@@ -2357,6 +2362,9 @@ static void *miner_thread(void *userdata)
 		case ALGO_RAINFOREST:
 			rc = scanhash_rf256(thr_id, &work, max_nonce, &hashes_done);
 			break;
+		case ALGO_RAINFOREST_V2:
+			rc = scanhash_rfv2(thr_id, &work, max_nonce, &hashes_done);
+			break;
 		case ALGO_SCRYPT:
 			rc = scanhash_scrypt(thr_id, &work, max_nonce, &hashes_done, scratchbuf, opt_scrypt_n);
 			break;
@@ -2462,6 +2470,7 @@ static void *miner_thread(void *userdata)
 			case ALGO_CRYPTONIGHT:
 			case ALGO_PLUCK:
 			case ALGO_SCRYPTJANE:
+			case ALGO_RAINFOREST_V2:
 				applog(LOG_INFO, "CPU #%d: %.2f H/s", thr_id, thr_hashrates[thr_id]);
 				break;
 			default:

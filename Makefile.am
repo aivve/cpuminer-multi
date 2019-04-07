@@ -19,6 +19,7 @@ cpuminer_SOURCES = \
   cpu-miner.c util.c \
   api.c sysinfos.c \
   uint256.cpp \
+  rfv2/rfv2_core.c \
   sha3/sph_keccak.c \
   sha3/sph_hefty1.c \
   sha3/sph_groestl.c \
@@ -89,6 +90,7 @@ cpuminer_SOURCES = \
   algo/pluck.c \
   algo/qubit.c \
   algo/rainforest.c \
+  algo/rfv2.c \
   algo/scrypt.c \
   algo/scrypt-jane.c \
   algo/sha2.c \
