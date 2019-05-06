@@ -3416,7 +3416,7 @@ static int thread_create(struct thr_info *thr, void* func)
 
 static void show_credits()
 {
-	printf("** " PACKAGE_NAME " " PACKAGE_VERSION " by tpruvot@github **\n");
+	printf("** " PACKAGE_NAME " " PACKAGE_VERSION " by MicroBitcoin@github **\n");
 	printf("BTC donation address: 1FhDPLPpw18X4srecguG3MxJYe4a1JsZnd (tpruvot)\n\n");
 }
 

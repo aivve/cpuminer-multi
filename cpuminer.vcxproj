@@ -236,6 +236,7 @@
     <ClCompile Include="algo\quark.c" />
     <ClCompile Include="algo\qubit.c" />
     <ClCompile Include="algo\rainforest.c" />
+    <ClCompile Include="algo\rfv2.c" />
     <ClCompile Include="algo\s3.c" />
     <ClCompile Include="algo\sha2.c" />
     <ClCompile Include="algo\sia.c" />
@@ -266,6 +267,9 @@
     <ClCompile Include="yescrypt\yescrypt-best.c" />
     <ClCompile Include="yescrypt\yescrypt-common.c" />
     <ClCompile Include="yescrypt\sha256_Y.c" />
+    <ClCompile Include="rfv2\rf_aes2r.c" />
+    <ClCompile Include="rfv2\rf_crc32.c" />
+    <ClCompile Include="rfv2\rfv2_core.c" />
     <ClCompile Include="sha3\aes_helper.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>

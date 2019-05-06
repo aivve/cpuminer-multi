@@ -72,13 +72,14 @@ Algorithms
  * ✓ __x20r__
  * ✓ __yescrypt__ (GlobalBoostY [BSTY], Unitus [UIS], MyriadCoin [MYR])
  * ✓ __zr5__ (Ziftrcoin [ZRC])
+ * ✓ __rainforest__ (MicroBitcoin [MBC])
+ * ✓ __rfv2__ (MicroBitcoin [MBC])
 
 #### Implemented, but untested
  * ? hefty1 (Heavycoin)
  * ? keccak (Maxcoin  HelixCoin, CryptoMeth, Galleon, 365coin, Slothcoin, BitcointalkCoin)
  * ? keccakc (Creativecoin)
  * ? luffa (Joincoin, Doomcoin)
- * ? rainforest
  * ? shavite3 (INKcoin)
 
 #### Planned support for

@@ -48,4 +48,6 @@ res/RC*
 sign/
 sign.sh
 
+asm/
+
 compat/curl-for-windows/
