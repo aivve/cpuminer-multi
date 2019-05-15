@@ -4,6 +4,10 @@
 
 #include <stdint.h>
 
+#ifdef _MSC_VER 
+#define inline __inline
+#endif
+
 #if defined(RF_NOASM) || !defined(__aarch64__) || !defined(__ARM_FEATURE_CRC32)
 // crc32 lookup tables
 static const uint32_t rf_crc32_table[256] = {

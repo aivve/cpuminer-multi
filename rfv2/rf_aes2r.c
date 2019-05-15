@@ -1,5 +1,10 @@
 #include <stdint.h>
 
+#ifdef _MSC_VER 
+#define inline __inline
+#define RF_ALIGN(x) __declspec(align(x))
+#endif
+
 // Two round implementation optimized for x86_64+AES-NI and ARMv8+crypto
 // extensions. Test pattern :
 //
