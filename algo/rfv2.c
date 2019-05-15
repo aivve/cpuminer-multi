@@ -12,6 +12,8 @@
 
 #include "rfv2/rfv2.h"
 
+#if defined(__APPLE__)
+
 #ifndef __FINK_ENDIANDEV_PKG_ENDIAN_H__
 #define __FINK_ENDIANDEV_PKG_ENDIAN_H__ 1
 
@@ -46,6 +48,7 @@
 
 #endif	/* __FINK_ENDIANDEV_PKG_ENDIAN_H__ */
 
+#endif // defined(__APPLE__)
 
 int scanhash_rfv2(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done)
 {

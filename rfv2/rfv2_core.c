@@ -50,6 +50,7 @@
 #endif
 #endif
 
+#if defined(__APPLE__)
 
 #ifndef __FINK_ENDIANDEV_PKG_ENDIAN_H__
 #define __FINK_ENDIANDEV_PKG_ENDIAN_H__ 1
@@ -85,7 +86,7 @@
 
 #endif	/* __FINK_ENDIANDEV_PKG_ENDIAN_H__ */
 
-
+#endif // defined(__APPLE__)
 
 // for aes2r_encrypt()
 #include "rf_aes2r.c"
